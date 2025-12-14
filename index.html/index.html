@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Living In My House | 聖誕節居家導覽</title>
+    <!-- 載入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 載入 Icon: Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- 載入 Google Fonts: Inter (內文) & Dancing Script (手寫標題) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* 全局設定 */
+        :root {
+            scroll-behavior: smooth;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* --- 自定義聖誕樹鼠標圖案 (🎄) --- */
+        body {
+            /* Fallback to default if emoji cursor fails */
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"><text x="0" y="25" font-size="25">🎄</text></svg>'), default;
+        }
+        button, a, .smooth-scroll, [role="button"] {
+            cursor: pointer !important; 
+        }
+
+        /* 手寫字體類別 */
+        .font-handwritten {
+            font-family: 'Dancing Script', cursive;
+        }
+
+        /* 隱藏預設的 Lucide Icon */
+        [data-lucide] {
+            display: inline-block;
+            stroke-width: 2;
+        }
+
+        /* 飄雪 Canvas 設定：固定在螢幕最上層，不阻擋點擊 */
+        #snow-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* 關鍵：讓用戶可以點擊下層內容 */
+            z-index: 9999;
+        }
+
+        /* 佔位圖樣式 (保持柔和) */
+        .placeholder-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            color: rgba(60, 60, 60, 0.8);
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            background-color: #f7f7f7; 
+        }
+        
+        .placeholder-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 圖片上的裝飾微光 */
+        .placeholder-box::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%);
+            background-size: 200% 100%;
+            animation: shine 4s infinite;
+        }
+
+        @keyframes shine {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+
+        /* Hero 區塊：背景圖片與遮罩 */
+        #home { 
+            background-color: #3b2f29; /* Dark background fallback */
+            position: relative;
+            z-index: 0;
+            /* */
+            background-image: url('https://i.pinimg.com/1200x/86/6d/a4/866da46fcb104233d857cb6fa9d91af8.jpg'); 
+            background-size: cover;
+            background-position: center;
+        }
+        
+        /* 確保 body 內容在覆蓋層之上 */
+        body {
+            position: relative; 
+            z-index: 1; 
+        }
+
+        /* 添加半透明的黑色覆蓋層 */
+        #home::before {
+            content: ''; 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; 
+            background-color: rgba(0, 0, 0, 0.4); 
+        }
+
+        /* 確保 Hero 區塊的文字和按鈕在遮罩之上 */
+        #home > * {
+            position: relative;
+            z-index: 10;
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        /* 簡約灰度 X 節慶色系 */
+                        /* 統一背景色後，只保留節慶主題色 */
+                        
+                        /* 節慶色使用較為沉穩的色調 */
+                        'xmas-red': '#b91c1c', /* Muted Red-700 */
+                        'xmas-green': '#057850', /* Muted Emerald-700 */
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="text-gray-700 bg-gray-100 relative"> <!-- BODY 使用更深的灰色作為基底 (bg-gray-100) -->
+    
+    <!-- 全站飄雪特效 Canvas -->
+    <canvas id="snow-canvas"></canvas>
+
+    <!-- 1. 導覽列 -->
+    <header id="navbar" class="sticky top-0 z-50 bg-white/90 backdrop-blur-sm shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo 改用手寫字體 -->
+                <a href="#home" class="text-3xl font-handwritten font-bold text-xmas-red smooth-scroll flex items-center gap-2">
+                    Living In My House <i data-lucide="snowflake" class="w-5 h-5 text-gray-400"></i>
+                </a>
+
+                <!-- 桌面版導覽 -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#home" class="text-gray-600 hover:text-xmas-red font-medium transition duration-150 smooth-scroll">Home</a>
+                    <a href="#kitchen" class="text-gray-600 hover:text-xmas-green font-medium transition duration-150 smooth-scroll">Kitchen</a>
+                    <a href="#bedroom" class="text-gray-600 hover:text-xmas-red font-medium transition duration-150 smooth-scroll">Bedroom</a>
+                    <a href="#livingroom" class="text-gray-600 hover:text-xmas-green font-medium transition duration-150 smooth-scroll">Living Room</a>
+                    <a href="#bathroom" class="text-gray-600 hover:text-xmas-red font-medium transition duration-150 smooth-scroll">Bathroom</a>
+                </nav>
+
+                <!-- 手機版漢堡選單 -->
+                <button id="menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 transition duration-150">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 手機版選單 -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg border-t border-gray-100">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="#home" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-red-50 hover:text-xmas-red smooth-scroll">Home</a>
+                <a href="#kitchen" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-green-50 hover:text-xmas-green smooth-scroll">Kitchen</a>
+                <a href="#bedroom" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-red-50 hover:text-xmas-red smooth-scroll">Bedroom</a>
+                <a href="#livingroom" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-green-50 hover:text-xmas-green smooth-scroll">Living Room</a>
+                <a href="#bathroom" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-red-50 hover:text-xmas-red smooth-scroll">Bathroom</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 2. Hero 區塊 -->
+    <section id="home" class="min-h-[85vh] flex items-center justify-center p-8 md:p-16 relative overflow-hidden">
+        <div class="text-center max-w-4xl space-y-8 relative z-10">
+            <!-- 聖誕裝飾小標 -->
+            <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-red-100 text-xmas-red text-sm font-semibold tracking-wide uppercase">
+                <i data-lucide="gift" class="w-4 h-4"></i> Holiday Edition
+            </div>
+
+            <!-- 手寫大標題 -->
+            <h1 class="text-6xl sm:text-8xl font-handwritten font-bold text-white leading-tight" style="text-shadow: 0 0 15px rgba(255,255,255,0.7), 0 0 30px rgba(255,100,100,0.5);">
+                Living In My House
+            </h1>
+            
+            <p class="text-xl sm:text-2xl font-light text-gray-100 max-w-3xl mx-auto">
+                自然 × 聖誕居家靈感<br>
+                <span class="text-base text-gray-300 mt-2 block">讓生活充滿色彩與溫暖的冬日節慶氛圍</span>
+            </p>
+
+            <!-- 聖誕風格按鈕 -->
+            <a href="#kitchen" class="inline-flex items-center gap-2 mt-8 px-8 py-4 bg-xmas-red/90 text-white text-lg font-semibold rounded-full shadow-lg hover:bg-xmas-red transition duration-300 transform hover:scale-105 smooth-scroll">
+                <i data-lucide="sparkles" class="w-5 h-5"></i> 探索聖誕佈置
+            </a>
+        </div>
+    </section>
+
+    <main>
+        <!-- 3. Kitchen 區塊 (背景色已改為更深的琥珀棕色 bg-amber-100) -->
+        <section id="kitchen" class="py-16 md:py-24 bg-amber-100 transition duration-500 ease-in-out shadow-lg rounded-lg mx-auto max-w-7xl my-8">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+                <header class="text-center space-y-4 scroll-reveal opacity-0 translate-y-12 transition duration-700 ease-out">
+                    <h2 class="text-5xl md:text-7xl font-handwritten font-bold text-gray-900 flex justify-center items-center gap-4">
+                        <i data-lucide="candy-cane" class="w-8 h-8 text-xmas-red"></i>
+                        Kitchen
+                        <i data-lucide="candy-cane" class="w-8 h-8 text-xmas-red transform scale-x-[-1]"></i>
+                    </h2>
+                    <p class="text-xl md:text-2xl font-medium text-gray-700 italic">
+                        “The heart of the home, smelling of gingerbread and pine.”
+                    </p>
+                </header>
+                
+                <!-- 內容網格 -->
+                <div class="grid md:grid-cols-12 gap-10 items-start scroll-reveal opacity-0 translate-y-12 transition duration-700 ease-out">
+                    <!-- 圖片區塊：佔 4 份 -->
+                    <div class="space-y-6 md:col-span-4"> 
+                        <!-- 廚房圖片 1: 聖誕餐桌佈置 -->
+                        <div class="placeholder-box h-72 p-0 overflow-hidden">
+                            <img 
+                                src="https://i.pinimg.com/736x/23/d3/8f/23d38f1e7e9d358f580da51f08f3fc86.jpg" 
+                                alt="" 
+                                class="w-full h-full object-cover transition duration-500 hover:scale-[1.05]"
+                                onerror="this.onerror=null; this.src='https://placehold.co/600x240/ccfbf1/064e3b?text=Image+Load+Error'"
+                            />
+                        </div>
+                        <!-- 房圖片 2: 小型松樹裝飾 -->
+                        <div class="placeholder-box md:h-80 p-0 overflow-hidden">
+                            <img 
+                                src="https://i.pinimg.com/1200x/f3/9b/6d/f39b6d61abd102dce2f548cebdcf2f24.jpg"
+                                alt="[Image of Small pine tree decoration in the kitchen]" 
+                                class="w-full h-full object-cover transition duration-500 hover:scale-[1.05]"
+                                onerror="this.onerror=null; this.src='https://placehold.co/600x320/ccfbf1/064e3b?text=Image+Load+Error'"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="space-y-8 md:col-span-8">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-4 font-handwritten text-4xl">Christmas Vibe</h3>
+                            <!-- *** 這裡示範將一段文字拆分成多個 <p> 標籤，讓段落更清晰 *** -->
+                            <p class="text-lg leading-relaxed text-gray-700 mb-4">
+                                冬季的廚房是節慶氛圍的起點。我們換上了經典的紅綠格紋桌巾，並加入了手繪的薑餅人裝飾，讓整個空間多了一分俏皮與童趣。烤箱裡現烤的肉桂捲和薑餅散發出濃郁的香氣，暖暖的甜味在空氣中輕輕流動，像是提前預告著即將到來的歡聚時刻。窗邊掛著的常青植物花環在微風中微微晃動，搭配柔和的暖黃色燈串，讓這個小小空間彷彿被節慶光芒包裹。
+                            </p>
+                            <p class="text-lg leading-relaxed text-gray-700">
+                                灶台上慢慢煮著一鍋熱紅酒，橙片、丁香與肉桂的香氣交織成令人放鬆的冬季氣息。旁邊的木質料理台堆放著剛買回來的新鮮食材，等著被烹調成今晚與家人朋友共享的豐盛節日大餐。這裡不只是料理的地方，而是一個讓人停下腳步、感受溫暖連結的空間。在冬季裡，這間廚房像一顆小小的心臟，把幸福、香氣與熱度緩緩地注入整個家。
+                            </p>
+                        </div>
+                        <ul class="list-none space-y-3 text-gray-700 text-lg">
+                            <li class="flex items-start"><i data-lucide="check" class="w-5 h-5 mr-3 text-xmas-green mt-1"></i>自然光與松葉綠植的搭配</li>
+                            <li class="flex items-start"><i data-lucide="check" class="w-5 h-5 mr-3 text-xmas-green mt-1"></i>復古紅綠格紋與金色餐具</li>
+                            <li class="flex items-start"><i data-lucide="check" class="w-5 h-5 mr-3 text-xmas-green mt-1"></i>充滿肉桂與柑橘香氣的空間</li>
+                            <li class="flex items-start"><i data-lucide="check" class="w-5 h-5 mr-3 text-xmas-green mt-1"></i>準備聖誕主題的烘焙工具與食材</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Bedroom 區塊 (背景色已改為更深的琥珀棕色 bg-amber-100) -->
+        <section id="bedroom" class="py-16 md:py-24 bg-amber-100 transition duration-500 ease-in-out shadow-lg rounded-lg mx-auto max-w-7xl my-8">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+                <header class="text-center space-y-4 scroll-reveal opacity-0 translate-y-12 transition duration-700 ease-out">
+                    <h2 class="text-5xl md:text-7xl font-handwritten font-bold text-gray-900">
+                        Cozy Bedroom
+                    </h2>
+                    <p class="text-xl md:text-2xl font-medium text-gray-700 italic">
+                        “Wrapped in warm blankets, waiting for Santa.”
+                    </p>
+                </header>
+
+                <!-- 內容網格 -->
+                <div class="grid md:grid-cols-12 gap-10 items-start scroll-reveal opacity-0 translate-y-12 transition duration-700 ease-out">
+                    <!-- 文字區塊：佔 8 份 -->
+                    <div class="space-y-8 md:col-span-8 order-2 md:order-1">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-4 font-handwritten text-4xl">Christmas Vibe</h3>
+                            <!-- *** 這裡示範將一段文字拆分成多個 <p> 標籤，讓段落更清晰 *** -->
+                            <p class="text-lg leading-relaxed text-gray-700 mb-4">
+                                聖誕季將臥室打造成一個「極致舒適的冬日避風港」。從厚實柔軟的羊毛針織毯到天鵝絨抱枕，每一處觸感都像是專為冬天準備的溫暖擁抱。床鋪鋪上了帶有微光感的柔軟棉質被套，走進房裡就能感受到那股令人放鬆的暖意。我們在床頭與衣櫃上懸掛暖黃色的星星燈串 (Fairy Lights)，燈光不刺眼、不張揚，卻足以在整個房間灑落柔和又夢幻的光暈。牆面與床尾的細小陰影在燈串下輕輕跳動，讓人彷彿置身於一個寧靜的小宇宙。
+                            </p>
+                            <p class="text-lg leading-relaxed text-gray-700">
+                                點燃一顆松木、冷杉或白雪香氛蠟燭，木質調與冬季香氣慢慢蔓延，空氣中帶有淡淡的煙燻與乾淨清甜，像是把森林的呼吸帶進了房間。冷冽的冬夜因此變得不再刺骨，而是變成一段最適合捧著熱可可、窩在棉被裡聽音樂的靜謐時光。這個臥室，不只是休息的地方，而是一個可以讓心慢下來、身體沉入溫暖、重新整理能量的冬日庇護所。
+                            </p>
+                        </div>
+                        <ul class="list-none space-y-3 text-gray-700 text-lg">
+                            <li class="flex items-start"><i data-lucide="star" class="w-5 h-5 mr-3 text-xmas-red mt-1"></i>暖色燈串與香氛蠟燭</li>
+                            <li class="flex items-start"><i data-lucide="star" class="w-5 h-5 mr-3 text-xmas-red mt-1"></i>多層次的厚棉被與針織品</li>
+                            <li class="flex items-start"><i data-lucide="star" class="w-5 h-5 mr-3 text-xmas-red mt-1"></i>床邊的聖誕襪與禮物盒裝飾</li>
+                            <li class="flex items-start"><i data-lucide="star" class="w-5 h-5 mr-3 text-xmas-red mt-1"></i>增加香氛蠟燭或擴香儀的使用</li>
+                        </ul>
+                    </div>
+
+                    <!-- 圖片區塊：佔 4 份 -->
+                    <div class="space-y-6 md:col-span-4 order-1 md:order-2">
+                        <!-- 臥室圖片 1: 床頭燈串 -->
+                        <div class="placeholder-box h-72 p-0 overflow-hidden">
+                            <img 
+                                src="https://i.pinimg.com/1200x/d1/ef/7c/d1ef7cff4a2d63ac7062dd69a0bb4d4e.jpg" 
+                                alt="" 
+                                class="w-full h-full object-cover transition duration-500 hover:scale-[1.05]"
+                                onerror="this.onerror=null; this.src='https://placehold.co/600x240/fffbeb/78350f?text=Image+Load+Error'"
+                            />
+                        </div>
+                        <!-- 臥室圖片 2: 聖誕配色寢具 -->
+                        <div class="placeholder-box md:h-80 p-0 overflow-hidden">
+                            <img 
+                                src="https://i.pinimg.com/736x/12/bf/c8/12bfc863b04572165b919f55cf067d26.jpg" 
+                                alt="" 
+                                class="w-full h-full object-cover transition duration-500 hover:scale-[1.05]"
+                                onerror="this.onerror=null; this.src='https://placehold.co/600x320/fffbeb/78350f?text=Image+Load+Error'"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Living Room 區塊 (背景色已改為更深的琥珀棕色 bg-amber-100) -->
+        <section id="livingroom" class="py-16 md:py-24 bg-amber-100 transition duration-500 ease-in-out shadow-lg rounded-lg mx-auto max-w-7xl my-8">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+                <header class="text-center space-y-4 scroll-reveal opacity-0 translate-y-12 transition duration-700 ease-out">
+                    <h2 class="5xl md:text-7xl font-handwritten font-bold text-gray-900 flex justify-center items-center gap-3">
+                        Living Room
+                        <i data-lucide="trees" class="w-10 h-10 text-xmas-green"></i>
+                    </h2>
+                    <p class="text-xl md:text-2xl font-medium text-gray-700 italic">
+                        “Gather around the tree, share stories and joy.”
+                    </p>
+                </header>
+
+                <!-- 內容網格 -->
+                <div class="grid md:grid-cols-12 gap-10 items-start scroll-reveal opacity-0 translate-y-12 transition duration-700 ease-out">
+                    <!-- 圖片區塊：佔 4 份 -->
+                    <div class="space-y-6 md:col-span-4">
+                        <!-- 客廳圖片 1: 聖誕樹與禮物堆 -->
+                        <div class="placeholder-box h-72 p-0 overflow-hidden">
+                            <img 
+                                src="https://i.pinimg.com/736x/e9/5e/f8/e95ef84c16a804798747778150b17b5d.jpg" 
+                                alt="[Image of Christmas tree and gifts]" 
+                                class="w-full h-full object-cover transition duration-500 hover:scale-[1.05]"
+                                onerror="this.onerror=null; this.src='https://placehold.co/600x240/f3e8ff/6b21a8?text=Image+Load+Error'"
+                            />
+                        </div>
+                        <!-- 客廳圖片 2: 壁爐沙發區 -->
+                        <div class="placeholder-box md:h-80 p-0 overflow-hidden">
+                            <img 
+                                src="https://i.pinimg.com/1200x/63/16/e0/6316e01c6e95aaf37c65c138a5e247a5.jpg" 
+                                alt="[Image of A cozy sofa area near a fireplace decorated for Christmas]" 
+                                class="w-full h-full object-cover transition duration-500 hover:scale-[1.05]"
+                                onerror="this.onerror=null; this.src='https://placehold.co/600x320/f3e8ff/6b21a8?text=Image+Load+Error'"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- 文字區塊：佔 8 份 -->
+                    <div class="space-y-8 md:col-span-8">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-4 font-handwritten text-4xl">Christmas Vibe</h3>
+                            <!-- *** 這裡示範將一段文字拆分成多個 <p> 標籤，讓段落更清晰 *** -->
+                            <p class="text-lg leading-relaxed text-gray-700 mb-4">
+                                客廳毫無疑問是這個家的聖誕節靈魂所在。中央立著一顆高大、被精緻裝飾點亮的聖誕樹，掛滿復古玻璃球、金色飾品與手工木質小物，每一個細節都像承載著不同年代的回憶。樹下整齊放著各式包裝的禮物盒，有些綁著寬大的緞帶，有些用牛皮紙包裹，安靜地等待在平安夜被拆開的那一刻。我們保留了 Mid-century modern 的簡約家具線條，乾淨俐落的木質與金屬框架仍然是空間的基調，但在冬季的節日裡，更添上了柔軟、溫暖的元素。毛茸茸的毯子自然地搭在沙發邊，深紅與莓果色點綴的花圈放在邊櫃與茶几上，讓原本偏向理性的設計風格變得更有情感、更有溫度。
+                            </p>
+                            <p class="text-lg leading-relaxed text-gray-700">
+                                傍晚燈光微暗時，壁爐被點亮。火光映照在聖誕樹的玻璃飾品上，反射出細小而柔亮的光點，整個客廳像是浸泡在柔和的金色之中。家人們圍坐在火光旁，端著熱可可或熱茶，交換故事、彼此靠近，笑聲與柴火聲交織成冬天最美好的背景音。這個空間不只是一個客廳，而是節慶記憶的發生地、情感交流的中心，也是整個冬季最具有溫度的所在。
+                            </p>
+                        </div>
+                        <ul class="list-none space-y-3 text-gray-700 text-lg">
+                            <li class="flex items-start"><i data-lucide="sparkles" class="w-5 h-5 mr-3 text-xmas-green mt-1"></i>視覺焦點：裝飾豐富的聖誕樹</li>
+                            <li class="flex items-start"><i data-lucide="sparkles" class="w-5 h-5 mr-3 text-xmas-green mt-1"></i>溫暖的木質與皮革質感</li>
+                            <li class="flex items-start"><i data-lucide="sparkles" class="w-5 h-5 mr-3 text-xmas-green mt-1"></i>適合拆禮物與聊天的溫馨佈局</li>
+                            <li class="flex items-start"><i data-lucide="sparkles" class="w-5 h-5 mr-3 text-xmas-green mt-1"></i>準備聖誕影集的DVD或流媒體清單</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Bathroom 區塊 (背景色已改為更深的琥珀棕色 bg-amber-100) -->
+        <section id="bathroom" class="py-16 md:py-24 bg-amber-100 transition duration-500 ease-in-out shadow-lg rounded-lg mx-auto max-w-7xl my-8">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+                <header class="text-center space-y-4 scroll-reveal opacity-0 translate-y-12 transition duration-700 ease-out">
+                    <h2 class="5xl md:text-7xl font-handwritten font-bold text-gray-900">
+                        Winter Spa
+                    </h2>
+                    <p class="text-xl md:text-2xl font-medium text-gray-700 italic">
+                        “A warm bath on a cold snowy night.”
+                    </p>
+                </header>
+
+                <!-- 內容網格 -->
+                <div class="grid md:grid-cols-12 gap-10 items-start scroll-reveal opacity-0 translate-y-12 transition duration-700 ease-out">
+                    <!-- 文字區塊：佔 8 份 -->
+                    <div class="space-y-8 md:col-span-8 order-2 md:order-1">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-4 font-handwritten text-4xl">Christmas Vibe</h3>
+                            <!-- *** 這裡示範將一段文字拆分成多個 <p> 標籤，讓段落更清晰 *** -->
+                            <p class="text-lg leading-relaxed text-gray-700 mb-4">
+                                即使是最小的浴室空間，也能透過細節傳遞節慶的溫馨感。夏季的綠植被悄悄換成帶著冬日氣息的尤加利葉、新鮮松枝與些許銀白色乾燥花，讓本來清爽的浴室多了一份森林般的沉靜氛圍。每一次推開門，都能看見那一抹低調卻濃厚的季節感。我們在浴缸邊擺上一個木質托盤，放置冬季限定的香氛：肉桂、蘋果、雪松與些許橙皮的暖調氣味，與天然海鹽浴球的微甜香氣彼此融合，像是在用香味輕輕宣告「冬天來了」。簡單的材質，就能讓空間多一種自然樸質的美。
+                            </p>
+                            <p class="text-lg leading-relaxed text-gray-700">
+                                到了寒冷的夜晚，這個小小角落便成為個人專屬的冬日 SPA。熱水升起的蒸氣讓香氣全面擴散，空間被包裹在溫暖柔和的霧氣之中。泡在浴缸裡，聽著水聲、讓肩膀和思緒一起放鬆，那種被蒸氣與精油香氣擁抱的瞬間，足以徹底洗去一天的疲憊，讓人重新恢復能量。這間浴室雖然不大，卻能為整個冬季帶來最療癒的儀式感。
+                            </p>
+                        </div>
+                        <ul class="list-none space-y-3 text-gray-700 text-lg">
+                            <li class="flex items-start"><i data-lucide="droplet" class="w-5 h-5 mr-3 text-xmas-red mt-1"></i>尤加利葉與松枝掛飾</li>
+                            <li class="flex items-start"><i data-lucide="droplet" class="w-5 h-5 mr-3 text-xmas-red mt-1"></i>冬季限定香氛：松木、肉桂</li>
+                            <li class="flex items-start"><i data-lucide="droplet" class="w-5 h-5 mr-3 text-xmas-red mt-1"></i>木質托盤與溫暖的白色毛巾</li>
+                            <li class="flex items-start"><i data-lucide="droplet" class="w-5 h-5 mr-3 text-xmas-red mt-1"></i>將毛巾換成厚實的米白色或灰色調</li>
+                        </ul>
+                    </div>
+
+                    <!-- 圖片區塊：佔 4 份 -->
+                    <div class="space-y-6 md:col-span-4 order-1 md:order-2">
+                        <!-- 浴室圖片 1: 浴缸香氛 -->
+                        <div class="placeholder-box h-72 p-0 overflow-hidden">
+                            <img 
+                                src="https://i.pinimg.com/1200x/44/8f/64/448f64143d0db7e30033c3cb84cea4aa.jpg" 
+                                alt="" 
+                                class="w-full h-full object-cover transition duration-500 hover:scale-[1.05]"
+                                onerror="this.onerror=null; this.src='https://placehold.co/600x240/eff6ff/2563eb?text=Image+Load+Error'"
+                            />
+                        </div>
+                        <!-- 浴室圖片 2: 編織掛毯 -->
+                        <div class="placeholder-box md:h-80 p-0 overflow-hidden">
+                            <img 
+                                src="https://i.pinimg.com/1200x/77/95/fc/7795fcf385b3d6514eb40e80c96a429c.jpg" 
+                                alt="" 
+                                class="w-full h-full object-cover transition duration-500 hover:scale-[1.05]"
+                                onerror="this.onerror=null; this.src='https://placehold.co/600x320/eff6ff/2563eb?text=Image+Load+Error'"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-100 py-12 mt-12 border-t border-gray-200 relative z-10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+            <div class="text-3xl font-handwritten font-bold text-gray-500">Merry Christmas</div>
+            <p class="text-sm text-gray-600">
+                © 2025 Living In My House. All rights reserved.<br>
+                Wishing you a season full of light and laughter.
+            </p>
+            <!-- 社交連結 -->
+            <div class="flex justify-center space-x-6 text-gray-500">
+                <!-- 1. Instagram 連結 -->
+                <a href="https://www.instagram.com/im7yteml/" target="_blank" aria-label="Instagram" class="hover:text-xmas-red transition duration-150"><i data-lucide="instagram"></i></a>
+                
+                <!-- 2. Email 連結 -->
+                <a href="mailto:A112010056@mail.shu.edu.tw" aria-label="Email" class="hover:text-xmas-red transition duration-150"><i data-lucide="mail"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 重新渲染 Lucide Icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
+            // --- 1. Mobile Menu Toggle 漢堡選單功能 ---
+            const menuButton = document.getElementById('menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileLinks = mobileMenu.querySelectorAll('a');
+
+            const toggleMenu = () => {
+                const isHidden = mobileMenu.classList.toggle('hidden');
+                // 切換漢堡圖標 (Menu <-> X)
+                const icon = menuButton.querySelector('i');
+                if (icon) {
+                    icon.setAttribute('data-lucide', isHidden ? 'menu' : 'x');
+                    lucide.createIcons(); // 重新繪製圖標
+                }
+            };
+
+            menuButton.addEventListener('click', toggleMenu);
+
+            // 點擊連結後關閉選單
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        toggleMenu();
+                    }
+                });
+            });
+
+
+            // --- 2. Scroll Reveal 視差滑動顯現效果 ---
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // 進入視圖時移除動畫初始狀態類別
+                        entry.target.classList.remove('opacity-0', 'translate-y-12');
+                        entry.target.classList.add('opacity-100', 'translate-y-0');
+                        observer.unobserve(entry.target); // 只執行一次
+                    }
+                });
+            }, { 
+                threshold: 0.1, // 元素 10% 進入視圖時觸發
+                rootMargin: '0px 0px -100px 0px' // 提前觸發 (在元素進入底部 100px 時)
+            });
+
+            document.querySelectorAll('.scroll-reveal').forEach(element => {
+                observer.observe(element);
+            });
+
+
+            // --- 3. Snowfall Canvas 飄雪特效 ---
+            function createSnowfall() {
+                const canvas = document.getElementById('snow-canvas');
+                if (!canvas) return;
+
+                const ctx = canvas.getContext('2d');
+                let W, H;
+                let maxFlakes = 100;
+                let flakes = [];
+
+                function setCanvasSize() {
+                    W = window.innerWidth;
+                    H = window.innerHeight;
+                    canvas.width = W;
+                    canvas.height = H;
+                }
+
+                setCanvasSize();
+                window.addEventListener('resize', setCanvasSize);
+
+                // 雪花物件構造函數
+                function Flake() {
+                    this.x = Math.random() * W;
+                    this.y = Math.random() * H;
+                    this.r = Math.random() * 2 + 1; // 半徑 1px to 3px
+                    this.d = Math.random() * 0.7 + 0.3; // 密度 (影響風的擺動幅度)
+                    this.speed = Math.random() * 0.5 + 0.1; // 速度
+                    this.a = Math.random() * 360; // 角度 (用於三角函數計算擺動)
+                }
+
+                // 初始化雪花
+                for (let i = 0; i < maxFlakes; i++) {
+                    flakes.push(new Flake());
+                }
+
+                function draw() {
+                    ctx.clearRect(0, 0, W, H);
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+                    ctx.beginPath();
+                    for (let i = 0; i < maxFlakes; i++) {
+                        let f = flakes[i];
+                        ctx.moveTo(f.x, f.y);
+                        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2, true);
+                    }
+                    ctx.fill();
+                    move();
+                }
+
+                let angle = 0;
+                function move() {
+                    angle += 0.005; // 讓雪花同步擺動
+                    for (let i = 0; i < maxFlakes; i++) {
+                        let f = flakes[i];
+                        
+                        // X 軸擺動 (模擬風吹)
+                        f.x += Math.sin(angle * f.d) * 0.5;
+                        
+                        // Y 軸下落
+                        f.y += f.speed;
+
+                        // 如果雪花落到視圖下方，則將其重設到頂部
+                        if (f.y > H + 10) {
+                            flakes[i] = new Flake();
+                            flakes[i].y = -10; // 從視圖上方開始
+                        }
+                    }
+                }
+
+                // 動畫主循環
+                function animate() {
+                    draw();
+                    requestAnimationFrame(animate);
+                }
+
+                animate();
+            }
+            
+            // 頁面載入完成後啟動飄雪效果
+            createSnowfall();
+        });
+    </script>
+</body>
+</html>
